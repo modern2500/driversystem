@@ -377,7 +377,7 @@
             </div>
             
             <div class="group">
-                <label>🧹 雨刮器 Windshield Wiper</label>
+                <label> 雨刮器 Windshield Wiper</label>
                 <select id="chkWiper">
                     <option value="正常">✅ 干净清晰 Clear & Smooth</option>
                     <option value="老化">⚠️ 刮不干净/胶条老化 Streaking / Worn rubber</option>
@@ -390,7 +390,7 @@
                 <select id="chkAc">
                     <option value="正常">✅ 够冷 Good cooling</option>
                     <option value="偏弱">⚠️ 不够冷 Weak cooling</option>
-                    <option value="故障">❌ 不制冷 Not working</option>
+                    <option value="故障">❌ 完全不冷 Not working</option>
                 </select>
             </div>
             
@@ -399,7 +399,7 @@
                 <select id="chkFuel">
                     <option value="充足">✅ 充足 Sufficient</option>
                     <option value="偏低">⚠️ 偏低 Low</option>
-                    <option value="很少">❌ 很少 Very Low — Refill soon</option>
+                    <option value="很少">❌ 很少 Very Low — need refill</option>
                 </select>
             </div>
             
@@ -439,7 +439,7 @@
                     <input type="date" id="washDate" readonly style="background:var(--light);">
                 </div>
                 <div class="col group">
-                    <label>类型 Type</label>
+                    <label>类型 Type *</label>
                     <select id="washType">
                         <option value="">— 请选择 —</option>
                         <option value="仅外观">仅外观 Exterior Only</option>
@@ -449,7 +449,7 @@
                 </div>
             </div>
             <div class="group">
-                <label>📷 上传照片 Photo</label>
+                <label>📷 上传照片 Photo *</label>
                 <input type="file" id="washPhoto" accept="image/*" onchange="previewPhoto(this)">
                 <img id="photoPreview" style="max-width:150px; border-radius:6px; margin-top:8px; display:none;">
             </div>
