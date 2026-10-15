@@ -306,22 +306,19 @@
                     <div class="light-item">
                         <label style="font-size:13px;">刹车灯 Brake Light</label>
                         <select id="chkLightBrake">
-                            <option value="亮">✅ 亮 Working</option>
-                            <option value="不亮">❌ 不亮 Not working</option>
+                            <option value="正常">✅ 两边都亮 Working</option>
+                            <option value="异常">❌ 左亮，右坏 Left working, Right not working</option>
+                            <option value="异常">❌ 右亮，左坏 Right working, Left not working</option>
+                            <option value="异常">❌ 两边都坏 Both sides are not working</option>
                         </select>
                     </div>
                     <div class="light-item">
-                        <label style="font-size:13px;">左转向灯 Left Signal</label>
-                        <select id="chkLightLeft">
-                            <option value="正常">✅ 亮 Working</option>
-                            <option value="异常">❌ 不亮 Not working</option>
-                        </select>
-                    </div>
-                    <div class="light-item">
-                        <label style="font-size:13px;">右转向灯 Right Signal</label>
-                        <select id="chkLightRight">
-                            <option value="正常">✅ 亮 Working</option>
-                            <option value="异常">❌ 不亮 Not working</option>
+                        <label style="font-size:13px;">转向灯 Signal</label>
+                        <select id="chkLightSignal">
+                            <option value="正常">✅ 两边都亮 Working</option>
+                            <option value="异常">❌ 左亮，右坏 Left working, Right not working</option>
+                            <option value="异常">❌ 右亮，左坏 Right working, Left not working</option>
+                            <option value="异常">❌ 两边都坏 Both sides are not working</option>
                         </select>
                     </div>
                     <div class="light-item">
