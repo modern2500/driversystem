@@ -1,4 +1,4 @@
-<driversystem.html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -62,6 +62,15 @@
         .light-item { flex:1; min-width:120px; }
         .admin-section { border-top:2px dashed var(--border); margin-top:25px; padding-top:20px; }
         .required-mark { color:var(--danger); margin-left:2px; }
+        .day-checkboxes { display:flex; flex-wrap:wrap; gap:10px; margin-top:5px; }
+        .day-check-item { display:flex; align-items:center; gap:4px; padding:5px 8px; border:1px solid var(--border); border-radius:4px; cursor:pointer; }
+        .day-check-item.checked { background:var(--light); border-color:var(--primary); }
+        .day-check-item input { width:auto; margin:0; }
+        .att-summary { display:flex; gap:20px; margin:10px 0; flex-wrap:wrap; }
+        .att-item { padding:8px 15px; border-radius:6px; font-weight:bold; }
+        .att-present { background:#d6f5e3; color:#006622; }
+        .att-absent { background:#ffebe6; color:#cc2900; }
+        .att-none { background:#e0e0e0; color:#444; }
     </style>
 </head>
 <body>
@@ -69,7 +78,6 @@
     <h1>🚌 载送管理系统 <span class="sync-status" id="syncStatus">在线</span></h1>
     <p class="subtitle">补习中心 · 载送部 SOP 管理平台</p>
 </header>
-
 <div class="card" id="loginArea">
     <h2>👤 请选择您的身份进入</h2>
     <div class="row">
@@ -90,12 +98,10 @@
     </div>
     <button class="btn btn-primary" id="enterBtn" onclick="loginAsDriver()" disabled>进入系统</button>
 </div>
-
 <div class="auth-banner hidden" id="authBanner">
     <span>当前用户：<span class="user" id="currentUserName"></span></span>
     <button class="btn btn-secondary" style="padding:6px 12px; font-size:14px;" onclick="logout()">退出</button>
 </div>
-
 <div id="adminLoginModal" class="hidden">
     <div class="password-modal">
         <div class="password-box">
@@ -109,7 +115,6 @@
         </div>
     </div>
 </div>
-
 <div class="tabs hidden" id="mainTabs">
     <button class="tab driver-tab active" data-tab="transport">📊 载送统计</button>
     <button class="tab driver-tab" data-tab="students">👥 学生点名</button>
@@ -121,7 +126,6 @@
     <button class="tab admin-tab hidden-tab" data-tab="allRecords">📊 全部数据</button>
     <button class="tab admin-tab hidden-tab" data-tab="adminPanel">🔧 管理后台</button>
 </div>
-
 <div id="contentArea" class="hidden">
 <div id="transport" class="tab-content driver-only">
     <div class="card">
@@ -231,17 +235,30 @@
             </div>
             <div class="row">
                 <div class="col group">
-                    <label>星期 Day of Week *</label>
-                    <select id="newStuDay">
-                        <option value="">— 请选择 —</option>
-                        <option value="Monday">星期一 Monday</option>
-                        <option value="Tuesday">星期二 Tuesday</option>
-                        <option value="Wednesday">星期三 Wednesday</option>
-                        <option value="Thursday">星期四 Thursday</option>
-                        <option value="Friday">星期五 Friday</option>
-                        <option value="Saturday">星期六 Saturday</option>
-                        <option value="Sunday">星期日 Sunday</option>
-                    </select>
+                    <label>星期 Day of Week * (可多选)</label>
+                    <div class="day-checkboxes" id="dayCheckboxes">
+                        <label class="day-check-item">
+                            <input type="checkbox" value="Monday"> 一
+                        </label>
+                        <label class="day-check-item">
+                            <input type="checkbox" value="Tuesday"> 二
+                        </label>
+                        <label class="day-check-item">
+                            <input type="checkbox" value="Wednesday"> 三
+                        </label>
+                        <label class="day-check-item">
+                            <input type="checkbox" value="Thursday"> 四
+                        </label>
+                        <label class="day-check-item">
+                            <input type="checkbox" value="Friday"> 五
+                        </label>
+                        <label class="day-check-item">
+                            <input type="checkbox" value="Saturday"> 六
+                        </label>
+                        <label class="day-check-item">
+                            <input type="checkbox" value="Sunday"> 日
+                        </label>
+                    </div>
                 </div>
                 <div class="col group">
                     <label>时间段 Time *</label>
@@ -252,7 +269,8 @@
             <p class="hint">💡 只有管理员可以添加/编辑/删除学生 Only Admin</p>
         </div>
         <div class="filter-bar">
-            <label>📅 今日点名日期：<strong id="todayDateDisplay"></strong></label>
+            <label>📅 点名日期：</label>
+            <input type="date" id="filterDate" onchange="renderStudentList()">
             <label>🏫 筛选学校 Filter：</label>
             <select id="filterSchool" onchange="renderStudentList()">
                 <option value="all">— 显示全部 All —</option>
@@ -267,7 +285,11 @@
                 <option>ST.Mary</option>
                 <option>Padungan</option>
             </select>
-            <label style="color:var(--primary); font-weight:bold;">仅显示今日有安排的学生</label>
+            <div class="att-summary" id="attSummary" style="display:none;">
+                <span class="att-item att-present">✅ 出席：<span id="sumPresent">0</span> 人</span>
+                <span class="att-item att-absent">❌ 缺席：<span id="sumAbsent">0</span> 人</span>
+                <span class="att-item att-none">⏳ 未填：<span id="sumNone">0</span> 人</span>
+            </div>
         </div>
         <div id="studentList"></div>
         <div style="margin-top:15px;">
@@ -517,14 +539,12 @@
         </form>
     </div>
 </div>
-
 <div id="myRecords" class="tab-content hidden">
     <div class="card">
         <h2>📋 我的提交记录 My Records</h2>
         <div id="myRecordsList" class="empty">暂无记录 No records yet</div>
     </div>
 </div>
-
 <div id="manageDrivers" class="tab-content hidden">
     <div class="card">
         <h2>👨‍💼 司机名单管理（仅管理员）</h2>
@@ -541,7 +561,6 @@
         <div id="driverList" style="margin-top:20px;"></div>
     </div>
 </div>
-
 <div id="statsCharts" class="tab-content hidden">
     <div class="card">
         <h2>📈 数据统计图表 Statistics & Charts</h2>
@@ -590,7 +609,6 @@
         </div>
     </div>
 </div>
-
 <div id="allRecords" class="tab-content hidden">
     <div class="card">
         <h2>📊 全部数据汇总 All Records</h2>
@@ -598,7 +616,6 @@
         <div id="allRecordsList" class="empty">暂无记录 No records yet</div>
     </div>
 </div>
-
 <div id="adminPanel" class="tab-content hidden">
     <div class="card">
         <h2>🔧 管理后台 Admin Panel</h2>
@@ -607,11 +624,11 @@
     </div>
 </div>
 </div>
-
 <script>
 const ADMIN_PASSWORD = 'modernedu';
 const DEFAULT_DRIVERS = ['Uncle Alan','Uncle Arnold','Uncle Brandon','Uncle How'];
 const DAY_NAMES = {Monday:'星期一',Tuesday:'星期二',Wednesday:'星期三',Thursday:'星期四',Friday:'星期五',Saturday:'星期六',Sunday:'星期日'};
+const DAY_ABBR = {Monday:'一',Tuesday:'二',Wednesday:'三',Thursday:'四',Friday:'五',Saturday:'六',Sunday:'日'};
 let driversList = JSON.parse(localStorage.getItem('driversList') || JSON.stringify(DEFAULT_DRIVERS));
 let currentUser = null;
 let attendanceState = {};
@@ -620,6 +637,13 @@ let singleChart = null, compareChart = null;
 function getTodayDayEnglish(){
     const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     return days[new Date().getDay()];
+}
+
+function getDayFromDateStr(dateStr){
+    if(!dateStr) return getTodayDayEnglish();
+    const d = new Date(dateStr);
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    return days[d.getDay()];
 }
 
 function todayStr(){ return new Date().toISOString().split('T')[0]; }
@@ -684,7 +708,11 @@ function enterSystem(){
     document.getElementById('currentUserName').textContent = currentUser.name;
     document.getElementById('mainTabs').classList.remove('hidden');
     document.getElementById('contentArea').classList.remove('hidden');
-    document.getElementById('todayDateDisplay').textContent = todayStr() + ' (' + DAY_NAMES[getTodayDayEnglish()] + ')';
+    
+    const filterDateEl = document.getElementById('filterDate');
+    if(filterDateEl && !filterDateEl.value){
+        filterDateEl.value = todayStr();
+    }
     
     if(currentUser.role === 'driver'){
         document.querySelectorAll('.driver-tab').forEach(t=>t.classList.remove('hidden-tab'));
@@ -780,25 +808,46 @@ function updateStatDriverOptions(){
 
 let studentList = JSON.parse(localStorage.getItem('studentList')||'[]');
 
+function getSelectedDays(){
+    const boxes = document.querySelectorAll('#dayCheckboxes input:checked');
+    return Array.from(boxes).map(b=>b.value);
+}
+
 function addStudent(){
     if(currentUser?.role !== 'admin'){ alert('🔐 仅管理员可添加学生'); return; }
     const n = document.getElementById('newStuName').value.trim();
     const cn = document.getElementById('newStuCn').value.trim();
     const s = document.getElementById('newStuSchool').value;
     const g = document.getElementById('newStuGrade').value;
-    const d = document.getElementById('newStuDay').value;
+    const selectedDays = getSelectedDays();
     const t = document.getElementById('newStuTime').value;
-    if(!n||!s||!g||!d||!t){ alert('⚠️ 请填写完整！姓名/学校/年级/星期/时间 都需要！'); return; }
-    studentList.push({id:Date.now(),name:n,cn:cn,school:s,grade:g,day:d,time:t});
+    
+    if(!n||!s||!g||selectedDays.length===0||!t){ 
+        alert('⚠️ 请填写完整！姓名/学校/年级/至少选择一天/时间 都需要！'); 
+        return; 
+    }
+    
+    selectedDays.forEach(d=>{
+        studentList.push({
+            id:Date.now()+Math.floor(Math.random()*1000),
+            name:n,
+            cn:cn,
+            school:s,
+            grade:g,
+            day:d,
+            time:t
+        });
+    });
+    
     localStorage.setItem('studentList', JSON.stringify(studentList));
     document.getElementById('newStuName').value='';
     document.getElementById('newStuCn').value='';
     document.getElementById('newStuSchool').value='';
     document.getElementById('newStuGrade').value='';
-    document.getElementById('newStuDay').value='';
+    document.querySelectorAll('#dayCheckboxes input').forEach(b=>b.checked=false);
     document.getElementById('newStuTime').value='';
     renderStudentList();
-    alert('✅ 添加成功！已加入今日名单（如果是今天的安排）');
+    alert(`✅ 添加成功！已为 ${selectedDays.map(d=>DAY_ABBR[d]).join('、')} 生成安排`);
 }
 
 function deleteStudent(id){
@@ -810,77 +859,121 @@ function deleteStudent(id){
 }
 
 function renderStudentList(){
-    const todayDay = getTodayDayEnglish();
+    const filterDateEl = document.getElementById('filterDate');
+    const selectedDate = filterDateEl ? filterDateEl.value : todayStr();
+    const targetDay = getDayFromDateStr(selectedDate);
     const f = document.getElementById('filterSchool').value;
-    // 只显示今天有安排的学生
-    let list = studentList.filter(x=>x.day === todayDay);
+    
+    let list = studentList.filter(x=>x.day === targetDay);
     if(f !== 'all') list = list.filter(x=>x.school === f);
     
     const isAdmin = currentUser?.role === 'admin';
-    document.getElementById('studentList').innerHTML = list.length ? list.map(s=>{
+    const summaryEl = document.getElementById('attSummary');
+    let present=0, absent=0, none=0;
+    
+    list.forEach(s=>{
         const st = attendanceState[s.id]||{status:'none'};
-        return `<div class="student-card">
+        if(st.status==='present') present++;
+        else if(st.status==='absent') absent++;
+        else none++;
+    });
+    
+    if(list.length>0){
+        summaryEl.style.display='flex';
+        document.getElementById('sumPresent').textContent = present;
+        document.getElementById('sumAbsent').textContent = absent;
+        document.getElementById('sumNone').textContent = none;
+    } else {
+        summaryEl.style.display='none';
+    }
+
+    const c = document.getElementById('studentList');
+    if(!list.length){
+        c.innerHTML = `<p class="empty">📅 ${DAY_NAMES[targetDay]} (${selectedDate}) 暂无学生安排，请先添加学生</p>`;
+        return;
+    }
+
+    c.innerHTML = list.map(s=>{
+        const st = attendanceState[s.id] || {status:'none', remark:''};
+        return `
+        <div class="student-card">
             <div class="student-info">
-                <span class="student-school">${s.school}</span>
-                <span class="student-grade">${s.grade}</span>
-                <div class="student-name">${s.name}${s.cn?' / '+s.cn:''}</div>
-                <div class="student-time">📅 ${DAY_NAMES[s.day]} · ⏰ ${s.time}</div>
-                <div class="attend-buttons">
-                    <button class="ab-btn none ${st.status==='none'?'selected':''}" onclick="setAtt(${s.id},'none')">None</button>
-                    <button class="ab-btn present ${st.status==='present'?'selected':''}" onclick="setAtt(${s.id},'present')">Present</button>
-                    <button class="ab-btn absent ${st.status==='absent'?'selected':''}" onclick="setAtt(${s.id},'absent')">Absent</button>
+                <div class="student-name">${s.name} ${s.cn?'('+s.cn+')':''}</div>
+                <div class="student-meta">
+                    <span class="student-school">${s.school}</span>
+                    <span class="student-grade">${s.grade}</span>
+                    <span>📅 ${DAY_NAMES[s.day]}</span>
                 </div>
+                <div class="student-time">🕒 ${s.time}</div>
+                <div class="attend-buttons">
+                    <button class="ab-btn none ${st.status==='none'?'selected':''}" onclick="setAtt(${s.id},'none')">⏳ 未填</button>
+                    <button class="ab-btn present ${st.status==='present'?'selected':''}" onclick="setAtt(${s.id},'present')">✅ 出席</button>
+                    <button class="ab-btn absent ${st.status==='absent'?'selected':''}" onclick="setAtt(${s.id},'absent')">❌ 缺席</button>
+                </div>
+                <input type="text" placeholder="备注（选填）" style="margin-top:4px; padding:4px 8px; width:100%; border-radius:4px; border:1px solid #ddd;" 
+                    value="${st.remark||''}" onchange="setAttRemark(${s.id}, this.value)">
             </div>
-            ${isAdmin?`<button class="btn-icon btn-delete" onclick="deleteStudent(${s.id})" title="删除">🗑️</button>`:''}
+            ${isAdmin?`<button class="btn-icon btn-delete" onclick="deleteStudent(${s.id})" title="删除学生">🗑️</button>`:''}
         </div>`;
-    }).join('') : '<p class="empty">今日暂无安排的学生 No students scheduled for today</p>';
+    }).join('');
 }
 
-function setAtt(id,val){ attendanceState[id]={status:val}; renderStudentList(); }
-function resetAllStatus(){ attendanceState={}; renderStudentList(); }
-function saveAttendance(){
-    if(Object.keys(attendanceState).length === 0){ alert('⚠️ 还没有选择任何学生状态！'); return; }
-    saveRecord('attRecords', {
-        type:'attendance', 
-        driver:currentUser.name,
-        date:todayStr(),
-        day:getTodayDayEnglish(),
-        time:new Date().toLocaleString('zh-CN'),
-        data:attendanceState
-    });
-    alert('✅ 已保存今日点名'); 
-    attendanceState={}; 
+function setAtt(id, status){
+    attendanceState[id] = attendanceState[id] || {};
+    attendanceState[id].status = status;
     renderStudentList();
 }
+function setAttRemark(id, val){
+    attendanceState[id] = attendanceState[id] || {};
+    attendanceState[id].remark = val;
+}
+function resetAllStatus(){
+    if(!confirm('⚠️ 确定清空今日所有点名状态吗？')) return;
+    attendanceState = {};
+    renderStudentList();
+}
+function saveAttendance(){
+    const dateKey = document.getElementById('filterDate').value || todayStr();
+    const key = 'att_' + dateKey;
+    localStorage.setItem(key, JSON.stringify(attendanceState));
+    alert(`✅ ${dateKey} 点名已保存！`);
+}
 
-document.getElementById('transportForm').addEventListener('submit', e=>{
+// --- 表单提交：载送统计 ---
+document.getElementById('transportForm').addEventListener('submit', function(e){
     e.preventDefault();
-    const p = document.getElementById('trPlate').value;
-    if(!p){ alert('⚠️ 请选择车牌！'); return; }
-    saveRecord('transRecords', {
-        type:'transport', driver:currentUser.name, plate:p,
+    const rec = {
+        type:'transport',
+        id:Date.now(),
+        driver:document.getElementById('trDriver').value,
+        plate:document.getElementById('trPlate').value,
+        date:document.getElementById('trDate').value,
         dest:document.getElementById('trDirection').value,
-        count:+document.getElementById('trCount').value,
-        date:todayStr(), time:new Date().toLocaleString('zh-CN'),
+        count:document.getElementById('trCount').value,
         remark:document.getElementById('trRemark').value
-    });
-    alert('✅ 提交成功'); 
-    e.target.reset();
-    document.getElementById('trDriver').value=currentUser.name; 
-    document.getElementById('trDate').value=todayStr();
+    };
+    saveRecord(rec);
+    this.reset();
+    document.getElementById('trDriver').value = currentUser.name;
+    document.getElementById('trDate').value = todayStr();
+    alert('✅ 载送统计提交成功！');
 });
 
-document.getElementById('checkForm').addEventListener('submit', e=>{
+// --- 表单提交：车辆检查 ---
+document.getElementById('checkForm').addEventListener('submit', function(e){
     e.preventDefault();
-    const p = document.getElementById('chkPlate').value;
-    if(!p){ alert('⚠️ 请先选择车牌！'); return; }
-    saveRecord('checkRecords', {
-        type:'check', driver:currentUser.name, plate:p,
-	date:todayStr(), time:new Date().toLocaleString('zh-CN'),
+    const rec = {
+        type:'check',
+        id:Date.now(),
+        driver:document.getElementById('chkDriver').value,
+        plate:document.getElementById('chkPlate').value,
+        date:document.getElementById('chkDate').value,
         period:document.getElementById('chkPeriod').value,
-        mileage:+document.getElementById('chkMileage').value,
-        nextServiceKM:+document.getElementById('chkNextServiceKM').value,
-        nextServiceDate:document.getElementById('chkNextServiceDate').value||'',
+        mileage:document.getElementById('chkMileage').value,
+        nextServiceKM:document.getElementById('chkNextServiceKM').value,
+        nextServiceDate:document.getElementById('chkNextServiceDate').value || '',
+        oilDate:document.getElementById('chkOilDate').value || '',
+        batteryDate:document.getElementById('chkBatteryDate').value || '',
         tire:document.getElementById('chkTire').value,
         coolant:document.getElementById('chkCoolant').value,
         lightHigh:document.getElementById('chkLightHigh').value,
@@ -895,184 +988,247 @@ document.getElementById('checkForm').addEventListener('submit', e=>{
         wiper:document.getElementById('chkWiper').value,
         ac:document.getElementById('chkAc').value,
         fuel:document.getElementById('chkFuel').value,
-        oilDate:document.getElementById('chkOilDate').value||'',
-        batteryDate:document.getElementById('chkBatteryDate').value||'',
         remark:document.getElementById('chkRemark').value
-    });
-    alert('✅ 检查提交成功'); 
-    e.target.reset();
-    document.getElementById('chkDriver').value=currentUser.name; 
-    document.getElementById('chkDate').value=todayStr();
+    };
+    saveRecord(rec);
+    this.reset();
+    document.getElementById('chkDriver').value = currentUser.name;
+    document.getElementById('chkDate').value = todayStr();
+    alert('✅ 车辆检查提交成功！');
 });
 
-function previewPhoto(i){
-    const p=document.getElementById('photoPreview');
-    if(i.files[0]){ 
-        const r=new FileReader(); 
-        r.onload=e=>{p.src=e.target.result;p.style.display='block';}; 
-        r.readAsDataURL(i.files[0]); 
+// --- 照片预览 ---
+function previewPhoto(input){
+    if(input.files && input.files[0]){
+        const reader = new FileReader();
+        reader.onload = e=>{
+            const preview = document.getElementById('photoPreview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
     }
-    else p.style.display='none';
 }
-
-document.getElementById('washForm').addEventListener('submit', e=>{
+// --- 表单提交：洗车打卡 ---
+document.getElementById('washForm').addEventListener('submit', function(e){
     e.preventDefault();
-    const p=document.getElementById('washPlate').value;
-    const t=document.getElementById('washType').value;
-    const ph=document.getElementById('washPhoto').files[0];
-    if(!p){ alert('⚠️ 请选择车牌！'); return; }
-    if(!t){ alert('⚠️ 请选择洗车类型！'); return; }
-    if(!ph){ alert('⚠️ 请上传照片！'); return; }
-    saveRecord('washRecords', {
-        type:'wash', driver:currentUser.name, plate:p,
-        date:todayStr(), time:new Date().toLocaleString('zh-CN'),
-        washType:t, remark:document.getElementById('washRemark').value
-    });
-    alert('✅ 打卡成功'); 
-    e.target.reset();
-    document.getElementById('washDriver').value=currentUser.name; 
-    document.getElementById('washDate').value=todayStr();
-    document.getElementById('photoPreview').style.display='none';
+    const photoInput = document.getElementById('washPhoto');
+    let photoData = '';
+    if(photoInput.files && photoInput.files[0]){
+        const reader = new FileReader();
+        reader.onload = function(e){
+            photoData = e.target.result;
+            submitWashRecord(photoData);
+        };
+        reader.readAsDataURL(photoInput.files[0]);
+    } else {
+        submitWashRecord('');
+    }
+    function submitWashRecord(photoData){
+        const rec = {
+            type:'wash',
+            id:Date.now(),
+            driver:document.getElementById('washDriver').value,
+            plate:document.getElementById('washPlate').value,
+            date:document.getElementById('washDate').value,
+            washType:document.getElementById('washType').value,
+            photo:photoData,
+            remark:document.getElementById('washRemark').value
+        };
+        saveRecord(rec);
+        document.getElementById('washForm').reset();
+        document.getElementById('photoPreview').style.display = 'none';
+        document.getElementById('washDriver').value = currentUser.name;
+        document.getElementById('washDate').value = todayStr();
+        alert('✅ 洗车打卡提交成功！');
+    }
 });
 
-function saveRecord(key,data){
-    const arr=JSON.parse(localStorage.getItem(key)||'[]');
-    arr.unshift({...data,id:Date.now()});
-    localStorage.setItem(key,JSON.stringify(arr));
+// --- 通用数据存储 ---
+function getAllRecords(){
+    return JSON.parse(localStorage.getItem('allRecords') || '[]');
 }
-
-function getRecords(){
-    return [
-        ...JSON.parse(localStorage.getItem('transRecords')||'[]'),
-        ...JSON.parse(localStorage.getItem('checkRecords')||'[]'),
-        ...JSON.parse(localStorage.getItem('washRecords')||'[]'),
-        ...JSON.parse(localStorage.getItem('attRecords')||'[]')
-    ].sort((a,b)=>b.id-a.id);
+function saveRecord(rec){
+    const all = getAllRecords();
+    all.unshift(rec);
+    localStorage.setItem('allRecords', JSON.stringify(all));
+    updateSyncStatus('ok');
 }
 
 function renderMyRecords(){
-    const all = getRecords().filter(r=>r.driver===currentUser.name);
-    const c=document.getElementById('myRecordsList');
-    if(!all.length){ c.innerHTML='<p class="empty">暂无记录 No records yet</p>'; return; }
-    c.innerHTML=all.map(r=>{
-        const t={transport:'📊 载送统计',check:'🚗 车辆检查',wash:'🧼 洗车打卡',attendance:'👥 学生点名'}[r.type];
-        return `<div class="record"><strong>${t}</strong><p>司机：${r.driver} | ${r.date} ${r.time||''}</p><p>车牌：${r.plate||'-'}</p>${r.dest?`<p>目的地：${r.dest}</p>`:''}${r.count?`<p>人数：${r.count}</p>`:''}${r.mileage?`<p>当前公里：${r.mileage} km</p>`:''}</div>`;
+    const c = document.getElementById('myRecordsList');
+    const my = getAllRecords().filter(r=>r.driver === currentUser?.name);
+    if(!my.length){ c.innerHTML='<p class="empty">暂无提交记录</p>'; return; }
+    c.innerHTML = my.map(r=>{
+        let html = `<div class="record"><strong>${r.date} · ${getTypeLabel(r.type)}</strong><br>`;
+        if(r.type==='transport'){
+            html += `车牌：${r.plate} | 目的地：${r.dest} | 人数：${r.count}人`;
+            if(r.remark) html += `<br>备注：${r.remark}`;
+        } else if(r.type==='check'){
+            html += `车牌：${r.plate} | ${r.period} | 里程：${r.mileage}km`;
+        } else if(r.type==='wash'){
+            html += `车牌：${r.plate} | 类型：${r.washType}`;
+            if(r.remark) html += `<br>备注：${r.remark}`;
+        }
+        html += `</div>`;
+        return html;
     }).join('');
+}
+
+function getTypeLabel(t){
+    return {transport:'📊 载送统计', check:'🚗 车辆检查', wash:'🧼 洗车打卡'}[t] || t;
 }
 
 function renderAllRecords(){
-    const all=getRecords(); 
-    const c=document.getElementById('allRecordsList');
-    if(!all.length){ c.innerHTML='<p class="empty">暂无记录 No records yet</p>'; return; }
-    c.innerHTML=all.map(r=>{
-        const t={transport:'📊 载送统计',check:'🚗 车辆检查',wash:'🧼 洗车打卡',attendance:'👥 学生点名'}[r.type];
-        return `<div class="record"><strong>${t}</strong><p>司机：${r.driver} | ${r.date} ${r.time||''}</p><p>车牌：${r.plate||'-'}</p>${r.dest?`<p>目的地：${r.dest}</p>`:''}${r.count?`<p>人数：${r.count}</p>`:''}${r.mileage?`<p>当前公里：${r.mileage} km</p>`:''}</div>`;
+    const c = document.getElementById('allRecordsList');
+    const all = getAllRecords();
+    if(!all.length){ c.innerHTML='<p class="empty">暂无记录</p>'; return; }
+    c.innerHTML = all.map(r=>{
+        let html = `<div class="record"><strong>${r.date} · ${getTypeLabel(r.type)} · ${r.driver}</strong><br>`;
+        if(r.type==='transport'){
+            html += `车牌：${r.plate} | 目的地：${r.dest} | 人数：${r.count}人`;
+        } else if(r.type==='check'){
+            html += `车牌：${r.plate} | ${r.period} | 里程：${r.mileage}km`;
+        } else if(r.type==='wash'){
+            html += `车牌：${r.plate} | 类型：${r.washType}`;
+        }
+        html += `</div>`;
+        return html;
     }).join('');
 }
-
-function exportAll(){
-    const all=getRecords(); 
-    if(!all.length){ alert('暂无数据可导出'); return; }
-    const keys=['type','driver','date','time','plate','dest','count','mileage','nextServiceKM','nextServiceDate','washType','remark'];
-    const cn={'type':'类型','driver':'司机','date':'日期','time':'时间','plate':'车牌','dest':'目的地','count':'人数','mileage':'当前公里','nextServiceKM':'下次保养公里','nextServiceDate':'下次保养日期','washType':'洗车类型','remark':'备注'};
-    let csv=keys.map(k=>'"'+cn[k]+'"').join(',')+'\n';
-    all.forEach(r=>{ csv+=keys.map(k=>'"'+(String(r[k]||'').replace(/"/g,'""'))+'"').join(',')+'\n'; });
-    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='载送数据_'+todayStr()+'.csv';
-    a.click();
-}
-
+// --- 统计图表 ---
 function buildCharts(){
-    const y=+document.getElementById('statYear').value;
-    const mSel=document.getElementById('statMonth').value;
-    const m=mSel==='all'?null:+mSel;
-    const dSel=document.getElementById('statDriver').value;
-    const trans=JSON.parse(localStorage.getItem('transRecords')||'[]');
-    const checks=JSON.parse(localStorage.getItem('checkRecords')||'[]');
-    const washes=JSON.parse(localStorage.getItem('washRecords')||'[]');
-    
-    let fT=trans.filter(r=>{
-        const d=new Date(r.date);
-        return d.getFullYear()===y && (!m || d.getMonth()+1===m) && (dSel==='all' || r.driver===dSel);
-    });
-    let fC=checks.filter(r=>{
-        const d=new Date(r.date);
-        return d.getFullYear()===y && (!m || d.getMonth()+1===m) && (dSel==='all' || r.driver===dSel);
-    });
-    let fW=washes.filter(r=>{
-        const d=new Date(r.date);
-        return d.getFullYear()===y && (!m || d.getMonth()+1===m) && (dSel==='all' || r.driver===dSel);
-    });
+    const year = document.getElementById('statYear').value;
+    const month = document.getElementById('statMonth').value;
+    const driverFilter = document.getElementById('statDriver').value;
+    let all = getAllRecords().filter(r=>r.date.startsWith(year+'-'));
+    if(month !== 'all'){
+        const m = String(month).padStart(2,'0');
+        all = all.filter(r=>r.date.includes('-'+m+'-'));
+    }
 
-    if(dSel !== 'all'){
-        document.getElementById('singleStats').style.display = 'block';
-        document.getElementById('sName').textContent = dSel;
-        document.getElementById('sTransport').textContent = fT.reduce((s,r)=>s+(+r.count||0),0);
-        document.getElementById('sCheck').textContent = fC.length;
-        document.getElementById('sWash').textContent = fW.length;
-
-        const monthlyData = Array(12).fill(0);
-        fT.forEach(r=>{
-            const d = new Date(r.date);
-            monthlyData[d.getMonth()] += +r.count||0;
-        });
-
+    // 个人汇总
+    if(driverFilter !== 'all'){
+        const my = all.filter(r=>r.driver === driverFilter);
+        const transportCount = my.filter(r=>r.type==='transport').length;
+        const checkCount = my.filter(r=>r.type==='check').length;
+        const washCount = my.filter(r=>r.type==='wash').length;
+        
+        document.getElementById('singleStats').style.display='block';
+        document.getElementById('sName').textContent = driverFilter + ' · ' + year + (month!=='all'?`-${month}`:'');
+        document.getElementById('sTransport').textContent = transportCount;
+        document.getElementById('sCheck').textContent = checkCount;
+        document.getElementById('sWash').textContent = washCount;
+        
+        const ctx1 = document.getElementById('singleChart').getContext('2d');
         if(singleChart) singleChart.destroy();
-        singleChart = new Chart(document.getElementById('singleChart'), {
+        singleChart = new Chart(ctx1, {
             type:'bar',
             data:{
-                labels:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+                labels:['载送统计','车辆检查','洗车打卡'],
                 datasets:[{
-                    label:'载送人数 Student Count',
-                    data:monthlyData,
-                    backgroundColor:'#0052cc',
+                    label:'提交次数',
+                    data:[transportCount, checkCount, washCount],
+                    backgroundColor:['#0052cc','#009933','#e67700'],
                     borderRadius:6
                 }]
             },
             options:{
                 responsive:true,
                 maintainAspectRatio:false,
-                plugins:{legend:{position:'top'}},
-                scales:{y:{beginAtZero:true}}
+                plugins:{legend:{display:false}},
+                scales:{y:{beginAtZero:true, ticks:{stepSize:1}}}
             }
         });
     } else {
-        document.getElementById('singleStats').style.display = 'none';
+        document.getElementById('singleStats').style.display='none';
     }
 
-    const transByDriver = {};
-    const checkByDriver = {};
-    const washByDriver = {};
-    driversList.forEach(d=>{
-        transByDriver[d] = 0;
-        checkByDriver[d] = 0;
-        washByDriver[d] = 0;
+    // 司机对比图
+    const driverData = driversList.map(d=>{
+        const recs = all.filter(r=>r.driver===d);
+        return {
+            name:d.replace('Uncle ',''),
+            transport:recs.filter(r=>r.type==='transport').length,
+            check:recs.filter(r=>r.type==='check').length,
+            wash:recs.filter(r=>r.type==='wash').length
+        };
     });
-    fT.forEach(r=>{ if(transByDriver[r.driver]!==undefined) transByDriver[r.driver] += +r.count||0; });
-    fC.forEach(r=>{ if(checkByDriver[r.driver]!==undefined) checkByDriver[r.driver]++; });
-    fW.forEach(r=>{ if(washByDriver[r.driver]!==undefined) washByDriver[r.driver]++; });
-
+    
+    const ctx2 = document.getElementById('compareChart').getContext('2d');
     if(compareChart) compareChart.destroy();
-    compareChart = new Chart(document.getElementById('compareChart'), {
+    compareChart = new Chart(ctx2, {
         type:'bar',
         data:{
-            labels:driversList,
+            labels:driverData.map(d=>d.name),
             datasets:[
-                { label:'载送人数', data:Object.values(transByDriver), backgroundColor:'#0052cc', borderRadius:4 },
-                { label:'检查次数', data:Object.values(checkByDriver), backgroundColor:'#009933', borderRadius:4 },
-                { label:'洗车次数', data:Object.values(washByDriver), backgroundColor:'#ff9900', borderRadius:4 }
+                {label:'载送统计', data:driverData.map(d=>d.transport), backgroundColor:'#0052cc'},
+                {label:'车辆检查', data:driverData.map(d=>d.check), backgroundColor:'#009933'},
+                {label:'洗车打卡', data:driverData.map(d=>d.wash), backgroundColor:'#e67700'}
             ]
         },
         options:{
             responsive:true,
             maintainAspectRatio:false,
-            plugins:{legend:{position:'top'}},
-            scales:{y:{beginAtZero:true}}
+            plugins:{legend:{position:'bottom'}},
+            scales:{y:{beginAtZero:true, ticks:{stepSize:1}}}
         }
     });
 }
+
+// --- 导出CSV ---
+function exportAll(){
+    const all = getAllRecords();
+    if(!all.length){ alert('暂无数据可导出'); return; }
+    const headers = ['日期','类型','司机','车牌','详情','备注'];
+    const rows = all.map(r=>{
+        let detail = '';
+        if(r.type==='transport') detail = `目的地:${r.dest}, 人数:${r.count}`;
+        else if(r.type==='check') detail = `${r.period}, 里程:${r.mileage}km`;
+        else if(r.type==='wash') detail = `类型:${r.washType}`;
+        return [r.date, getTypeLabel(r.type), r.driver, r.plate||'', detail, r.remark||''];
+    });
+    let csv = '\uFEFF' + headers.join(',') + '\n' + rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `载送系统数据_${todayStr()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert('✅ 导出成功！');
+}
+// --- 同步状态显示 ---
+function updateSyncStatus(status){
+    const el = document.getElementById('syncStatus');
+    el.className = 'sync-status';
+    if(status === 'ok'){
+        el.textContent = '✅ 已同步';
+        el.classList.add('sync-ok');
+    } else if(status === 'sending'){
+        el.textContent = '⏳ 保存中...';
+        el.classList.add('sync-sending');
+    } else {
+        el.textContent = '⚠️ 本地模式';
+        el.classList.add('sync-error');
+    }
+}
+
+// --- 页面初始化 ---
+document.addEventListener('DOMContentLoaded', function(){
+    refreshDriverSelect();
+    const today = todayStr();
+    
+    // 加载今日点名数据
+    const savedAtt = localStorage.getItem('att_' + today);
+    if(savedAtt) attendanceState = JSON.parse(savedAtt);
+    
+    // 设置默认筛选日期
+    const filterDateEl = document.getElementById('filterDate');
+    if(filterDateEl) filterDateEl.value = today;
+    
+    updateSyncStatus('ok');
+});
 </script>
 </body>
 </html>
