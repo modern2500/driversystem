@@ -305,8 +305,8 @@
                     <label>检查时段 Period <span class="required-mark">*</span></label>
                     <select id="chkPeriod" required>
                         <option value="">— 请选择 —</option>
-                        <option value="出车前">🌅 早上出车前 Before departure</option>
-                        <option value="收车后">🌙 晚上收车后 After return</option>
+                        <option value="出车前">出车前 Before departure</option>
+                        <option value="收车后">收车后 After return</option>
                     </select>
                 </div>
             </div>
@@ -330,11 +330,12 @@
                 <select id="chkTire" required>
                     <option value="">— 请选择 —</option>
                     <option value="正常">✅ 正常 Good pressure & condition</option>
-                    <option value="异常">⚠️ 有异常 Low pressure / Damage</option>
+	            <option value="磨损需更换">⚠️ 胎纹严重磨损需更换 Tires with severely worn tread need to be replaced</option>
+	            <option value="气压异常/损坏">⚠️ 有异常 - 频繁需充气 / 损坏 Low pressure / Damage</option>
                 </select>
             </div>
             <div class="group">
-                <label>💧 冷却水 Coolant / Radiator Water <span class="required-mark">*</span></label>
+                <label>💧 冷却水/水箱水 Coolant / Radiator Water <span class="required-mark">*</span></label>
                 <select id="chkCoolant" required>
                     <option value="">— 请选择 —</option>
                     <option value="正常">✅ 液位正常，无渗漏 Normal — No leakage</option>
@@ -348,7 +349,7 @@
                     <div class="light-item">
                         <label style="font-size:13px;">远光 High Beam *</label>
                         <select id="chkLightHigh" required>
-                            <option value="">—</option>
+                            <option value="">- 请选择 -</option>
                             <option value="亮">✅ 亮 Working</option>
                             <option value="不亮">❌ 不亮 Not working</option>
                         </select>
@@ -356,7 +357,7 @@
                     <div class="light-item">
                         <label style="font-size:13px;">近光 Low Beam *</label>
                         <select id="chkLightLow" required>
-                            <option value="">—</option>
+                            <option value="">- 请选择 -</option>
                             <option value="亮">✅ 亮 Working</option>
                             <option value="不亮">❌ 不亮 Not working</option>
                         </select>
@@ -364,7 +365,7 @@
                     <div class="light-item">
                         <label style="font-size:13px;">刹车灯 Brake Light *</label>
                         <select id="chkLightBrake" required>
-                            <option value="">—</option>
+                            <option value="">- 请选择 -</option>
                             <option value="正常">✅ 两边都亮 Working</option>
                             <option value="异常">❌ 左亮右坏 Left working, Right not working</option>
                             <option value="异常">❌ 右亮左坏 Right working, Left not working</option>
@@ -374,7 +375,7 @@
                     <div class="light-item">
                         <label style="font-size:13px;">转向灯 Signal Light *</label>
                         <select id="chkLightSignal" required>
-                            <option value="">—</option>
+                            <option value="">- 请选择 -</option>
                             <option value="正常">✅ 两边都亮 Working</option>
                             <option value="异常">❌ 左亮右坏 Left working, Right not working</option>
                             <option value="异常">❌ 右亮左坏 Right working, Left not working</option>
@@ -384,7 +385,7 @@
                     <div class="light-item">
                         <label style="font-size:13px;">倒车灯 Reverse Light *</label>
                         <select id="chkLightReverse" required>
-                            <option value="">—</option>
+                            <option value="">- 请选择 -</option>
                             <option value="正常">✅ 亮 Working</option>
                             <option value="异常">❌ 不亮 Not working</option>
                         </select>
