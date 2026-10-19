@@ -6,7 +6,7 @@
     <title>载送管理S.O.P</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
     <script>
-        // ✅ 👇 把这里换成你最新的链接！
+        // ✅ 换成你最新的 /exec 链接
         const API_URL = "https://script.google.com/macros/s/AKfycbxnR2TiYc-DJrsuz6WH0ElAywmYudTrJ1b7xpzIfDMT-FmLuesDk-nCMsmec1XwHbes8A/exec";
         const ADMIN_PASSWORD = 'modernedu';
         const DEFAULT_DRIVERS = ['Uncle Alan','Uncle Arnold','Uncle Brandon','Uncle How'];
@@ -24,7 +24,7 @@
         .tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
         .tab { flex:1; min-width:100px; padding:10px 6px; border:none; border-radius:8px; background:#fff; color:#555; cursor:pointer; font-size:13px; transition:all .2s; }
         .tab.active { background:var(--primary); color:#fff; font-weight:bold; }
-        .tab.hidden-tab { display:none !important; }
+        .hidden-tab { display:none !important; }
         .card { background:#fff; border-radius:12px; padding:22px; margin-bottom:18px; box-shadow:0 2px 6px rgba(0,82,204,.08); }
         .card h2 { font-size:17px; color:var(--primary); margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid var(--light); }
         .row { display:flex; gap:15px; flex-wrap:wrap; }
@@ -50,6 +50,8 @@
         .light-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
         .light-item { flex:1; min-width:140px; }
         h3 { font-size:15px; margin:18px 0 10px; color:#444; }
+        .list-item { padding:10px 14px; background:var(--light); border-radius:6px; margin:6px 0; display:flex; justify-content:space-between; align-items:center; }
+        .chart-container { position:relative; height:350px; margin-top:15px; }
     </style>
 </head>
 <body>
@@ -92,17 +94,23 @@
 </div>
 
 <div class="tabs hidden" id="mainTabs">
+    <!-- 司机标签 -->
     <button class="tab driver-tab active" data-tab="transport">📊 载送统计</button>
     <button class="tab driver-tab" data-tab="students">👥 学生点名</button>
     <button class="tab driver-tab" data-tab="check">🚗 车辆检查</button>
     <button class="tab driver-tab" data-tab="wash">🧼 洗车打卡</button>
-    <button class="tab" data-tab="myRecords">📋 我的记录</button>
-    <button class="tab admin-tab hidden-tab" data-tab="allRecords">📊 全部数据</button>
+    <button class="tab driver-tab" data-tab="myRecords">📋 我的记录</button>
+    
+    <!-- 管理员专属标签 -->
+    <button class="tab admin-tab" data-tab="allRecords">📊 全部数据</button>
+    <button class="tab admin-tab" data-tab="stats">📈 Uncle对比图表</button>
+    <button class="tab admin-tab" data-tab="mgrStudents">👥 学生名单管理</button>
+    <button class="tab admin-tab" data-tab="mgrDrivers">🚗 司机名单管理</button>
 </div>
 
 <div id="contentArea" class="hidden">
 
-<!-- 载送统计 -->
+<!-- ========== 载送统计（司机） ========== -->
 <div id="transport" class="tab-content driver-only">
     <div class="card">
         <h2>载送每日统计 Transportation</h2>
@@ -149,7 +157,7 @@
     </div>
 </div>
 
-<!-- 学生点名 -->
+<!-- ========== 学生点名（司机） ========== -->
 <div id="students" class="tab-content hidden">
     <div class="card">
         <h2>👥 学生点名 Student Attendance</h2>
@@ -161,7 +169,7 @@
     </div>
 </div>
 
-<!-- 车辆检查 -->
+<!-- ========== 车辆检查（司机） ========== -->
 <div id="check" class="tab-content driver-only hidden">
     <div class="card">
         <h2>🚗 车辆日常检查 Vehicle Daily Check</h2>
@@ -289,7 +297,7 @@
     </div>
 </div>
 
-<!-- 洗车打卡 -->
+<!-- ========== 洗车打卡（司机） ========== -->
 <div id="wash" class="tab-content driver-only hidden">
     <div class="card">
         <h2>🧼 洗车打卡 Vehicle Wash Record</h2>
@@ -331,7 +339,7 @@
     </div>
 </div>
 
-<!-- 我的记录 - 按司机自动筛选 -->
+<!-- ========== 我的记录（司机） ========== -->
 <div id="myRecords" class="tab-content hidden">
     <div class="card">
         <h2>📋 我的提交记录 — <span id="myRecDriverName"></span></h2>
@@ -348,7 +356,7 @@
     </div>
 </div>
 
-<!-- 管理员 - 全部数据 -->
+<!-- ========== 全部数据（管理员） ========== -->
 <div id="allRecords" class="tab-content hidden">
     <div class="card">
         <h2>📊 全公司数据汇总</h2>
@@ -370,14 +378,89 @@
     </div>
 </div>
 
+<!-- ========== Uncle对比图表（管理员） ========== -->
+<div id="stats" class="tab-content hidden">
+    <div class="card">
+        <h2>📈 司机工作量对比</h2>
+        <div class="filter-bar">
+            <label>统计月份：</label>
+            <input type="month" id="statMonth" onchange="renderStats()">
+        </div>
+        <div class="chart-container">
+            <canvas id="driverChart"></canvas>
+        </div>
+        <div style="margin-top:25px;">
+            <h3>📋 数据明细</h3>
+            <div id="statDetail" style="margin-top:10px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 学生名单管理（管理员） ========== -->
+<div id="mgrStudents" class="tab-content hidden">
+    <div class="card">
+        <h2>👥 学生名单管理</h2>
+        <form id="addStudentForm" style="margin-bottom:20px; padding-bottom:20px; border-bottom:1px dashed #ddd;">
+            <h3>➕ 添加新学生</h3>
+            <div class="row">
+                <div class="col group">
+                    <label>姓名 *</label>
+                    <input type="text" id="stuName" required>
+                </div>
+                <div class="col group">
+                    <label>学校</label>
+                    <input type="text" id="stuSchool">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col group">
+                    <label>家长电话</label>
+                    <input type="text" id="stuPhone">
+                </div>
+                <div class="col group">
+                    <label>状态</label>
+                    <select id="stuStatus">
+                        <option value="在读">在读</option>
+                        <option value="暂停">暂停</option>
+                        <option value="已离校">已离校</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">✅ 添加</button>
+        </form>
+        <h3>学生列表</h3>
+        <div id="studentAdminList"></div>
+    </div>
+</div>
+
+<!-- ========== 司机名单管理（管理员） ========== -->
+<div id="mgrDrivers" class="tab-content hidden">
+    <div class="card">
+        <h2>🚗 司机名单管理</h2>
+        <form id="addDriverForm" style="margin-bottom:20px; padding-bottom:20px; border-bottom:1px dashed #ddd;">
+            <h3>➕ 添加新司机</h3>
+            <div class="group">
+                <label>司机姓名 *</label>
+                <input type="text" id="newDriverName" placeholder="例如：Uncle XXX" required>
+            </div>
+            <button type="submit" class="btn btn-primary">✅ 添加</button>
+        </form>
+        <h3>现有司机名单</h3>
+        <div id="driverAdminList"></div>
+    </div>
+</div>
+
 </div>
 
 <script>
 let driversList = [...DEFAULT_DRIVERS];
+let studentsList = [];
 let currentUser = null;
 let transportData = [], checkData = [], washData = [], attendanceState = {};
+let chartInstance = null;
 
 function todayStr() { return new Date().toISOString().split('T')[0]; }
+function currentMonth() { return new Date().toISOString().slice(0,7); }
 
 async function apiGet(action, params={}) {
     const u = new URL(API_URL);
@@ -428,6 +511,7 @@ async function loadAllFromCloud() {
     const res = await apiGet('getAll');
     if(res.ok && res.data) {
         if(res.data.drivers?.length>0) driversList=res.data.drivers;
+        studentsList = res.data.students || [];
         transportData = res.data.transport || [];
         checkData = res.data.check || [];
         washData = res.data.wash || [];
@@ -436,6 +520,9 @@ async function loadAllFromCloud() {
         populateDriverFilters();
         renderMyRecords();
         renderAllRecords();
+        renderDriverAdminList();
+        renderStudentAdminList();
+        if(currentUser?.role==='admin') renderStats();
         updateSyncStatus('ok');
     } else {
         refreshDriverSelect();
@@ -489,6 +576,8 @@ function enterSystem() {
     document.getElementById('chkDate').value=todayStr();
     document.getElementById('washDate').value=todayStr();
     document.getElementById('myRecDriverName').textContent=currentUser.name;
+    document.getElementById('statMonth').value=currentMonth();
+    document.getElementById('filterDate').value=todayStr();
     
     if(currentUser.role==='driver'){
         document.querySelectorAll('.driver-tab').forEach(t=>t.classList.remove('hidden-tab'));
@@ -512,6 +601,7 @@ function logout() {
     document.getElementById('contentArea').classList.add('hidden');
     document.getElementById('driverSelect').value='';
     document.getElementById('enterBtn').disabled=true;
+    if(chartInstance) chartInstance.destroy();
 }
 
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
@@ -522,6 +612,7 @@ function switchTab(n){
     document.getElementById(n).classList.remove('hidden');
     if(n==='myRecords')renderMyRecords();
     if(n==='allRecords')renderAllRecords();
+    if(n==='stats')renderStats();
 }
 
 // 提交载送
@@ -592,6 +683,35 @@ document.getElementById('washForm').addEventListener('submit',async e=>{
     document.getElementById('washDate').value=todayStr();
 });
 
+// 添加司机
+document.getElementById('addDriverForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const name=document.getElementById('newDriverName').value.trim();
+    if(!name){alert('请输入姓名');return;}
+    if(driversList.includes(name)){alert('该司机已存在');return;}
+    driversList.push(name);
+    const res=await apiPost({action:'saveDrivers',driversList});
+    alert(res.ok?'✅ 添加成功':'失败：'+res.msg);
+    e.target.reset();
+});
+
+// 添加学生
+document.getElementById('addStudentForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const stu={
+        id:Date.now(),
+        name:document.getElementById('stuName').value.trim(),
+        school:document.getElementById('stuSchool').value.trim(),
+        phone:document.getElementById('stuPhone').value.trim(),
+        status:document.getElementById('stuStatus').value
+    };
+    if(!stu.name){alert('请填写姓名');return;}
+    studentsList.push(stu);
+    const res=await apiPost({action:'saveStudents',students:studentsList});
+    alert(res.ok?'✅ 添加成功':'失败：'+res.msg);
+    e.target.reset();
+});
+
 function buildMergedList() {
     const list=[];
     transportData.forEach(r=>{ list.push({...r,_type:'transport'}); });
@@ -630,6 +750,73 @@ function renderAllRecords(){
     </div>`).join('');
 }
 
+function renderDriverAdminList(){
+    const c=document.getElementById('driverAdminList');
+    c.innerHTML=driversList.map((n,i)=>`<div class="list-item">
+        <span>${n}</span>
+        <button class="btn btn-sm btn-secondary" onclick="removeDriver(${i})">🗑️ 删除</button>
+    </div>`).join('');
+}
+
+async function removeDriver(index){
+    if(!confirm('确定删除？'))return;
+    driversList.splice(index,1);
+    await apiPost({action:'saveDrivers',driversList});
+}
+
+function renderStudentAdminList(){
+    const c=document.getElementById('studentAdminList');
+    if(!studentsList.length){c.innerHTML='<p class="empty">暂无学生</p>';return;}
+    c.innerHTML=studentsList.map((s,i)=>`<div class="list-item">
+        <span><strong>${s.name}</strong> | ${s.school||'未填学校'} | ${s.status}</span>
+        <button class="btn btn-sm btn-secondary" onclick="removeStudent(${i})">🗑️ 删除</button>
+    </div>`).join('');
+}
+
+async function removeStudent(index){
+    if(!confirm('确定删除？'))return;
+    studentsList.splice(index,1);
+    await apiPost({action:'saveStudents',students:studentsList});
+}
+
+function renderStats(){
+    const month=document.getElementById('statMonth').value;
+    if(!month)return;
+    const filtered = transportData.filter(r=>r.date?.startsWith(month));
+    const byDriver = {};
+    driversList.forEach(d=>byDriver[d]={count:0,students:0});
+    filtered.forEach(r=>{
+        if(byDriver[r.driver]){
+            byDriver[r.driver].count++;
+            byDriver[r.driver].students += Number(r.count)||0;
+        }
+    });
+    
+    const labels=Object.keys(byDriver);
+    const tripData=labels.map(d=>byDriver[d].count);
+    const studentData=labels.map(d=>byDriver[d].students);
+    
+    if(chartInstance) chartInstance.destroy();
+    const ctx=document.getElementById('driverChart').getContext('2d');
+    chartInstance = new Chart(ctx,{
+        type:'bar',
+        data:{
+            labels:labels,
+            datasets:[
+                {label:'出车次数',data:tripData,backgroundColor:'#0052cc'},
+                {label:'载送总人数',data:studentData,backgroundColor:'#009933'}
+            ]
+        },
+        options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}
+    });
+    
+    document.getElementById('statDetail').innerHTML=labels.map(d=>`
+        <div style="padding:8px 12px; background:var(--light); border-radius:6px; margin:4px 0;">
+            <strong>${d}</strong> — 出车 ${byDriver[d].count} 次 / 共 ${byDriver[d].students} 人次
+        </div>
+    `).join('');
+}
+
 function exportAll(){
     const fd = document.getElementById('filterDriver').value;
     const ft = document.getElementById('filterType').value;
@@ -644,6 +831,14 @@ function exportAll(){
     a.href=URL.createObjectURL(blob);
     a.download=`载送数据_${todayStr()}.csv`;
     a.click();
+}
+
+// 学生点名保存
+async function saveAttendance(){
+    const d=document.getElementById('filterDate').value;
+    if(!d){alert('请选择日期');return;}
+    await apiPost({action:'saveAttendance',dateKey:d,state:attendanceState});
+    alert('✅ 已保存');
 }
 
 refreshDriverSelect();
