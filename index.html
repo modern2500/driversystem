@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -5,7 +6,7 @@
     <title>载送管理S.O.P</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
     <script>
-        // ✅ 云端接口 — 全公司统一数据
+        // ✅ 云端接口 — 把下面链接换成你最新的 /exec 链接
         const API_URL = "https://script.google.com/macros/s/AKfycbxnR2TiYc-DJrsuz6WH0ElAywmYudTrJ1b7xpzIfDMT-FmLuesDk-nCMsmec1XwHbes8A/exec";
         const ADMIN_PASSWORD = 'modernedu';
         const DEFAULT_DRIVERS = ['Uncle Alan','Uncle Arnold','Uncle Brandon','Uncle How'];
@@ -80,7 +81,6 @@
     <p class="subtitle">补习中心 · 载送管理平台 — 全公司数据统一同步</p>
 </header>
 
-<!-- 登录区 -->
 <div class="card" id="loginArea">
     <h2>👤 请选择您的身份进入</h2>
     <div class="row">
@@ -118,7 +118,6 @@
     </div>
 </div>
 
-<!-- 主标签页 -->
 <div class="tabs hidden" id="mainTabs">
     <button class="tab driver-tab active" data-tab="transport">📊 载送统计</button>
     <button class="tab driver-tab" data-tab="students">👥 学生点名</button>
@@ -132,7 +131,6 @@
 
 <div id="contentArea" class="hidden">
 
-<!-- 📊 载送统计 -->
 <div id="transport" class="tab-content driver-only">
     <div class="card">
         <h2>载送每日统计 Transportation</h2>
@@ -179,7 +177,6 @@
     </div>
 </div>
 
-<!-- 👥 学生点名 -->
 <div id="students" class="tab-content hidden">
     <div class="card">
         <h2>👥 学生点名 Student Attendance</h2>
@@ -254,7 +251,6 @@
     </div>
 </div>
 
-<!-- 🚗 车辆检查 — 完整保留你要的全部项目！ -->
 <div id="check" class="tab-content driver-only hidden">
     <div class="card">
         <h2>🚗 车辆日常检查 Vehicle Daily Check</h2>
@@ -300,7 +296,6 @@
                 <label>下次保养到期日期 Next Service Due Date</label>
                 <input type="date" id="chkNextServiceDate">
             </div>
-
             <h3>上车前检查 Before Getting In</h3>
             <div class="group">
                 <label>🛞 车轮状况 Tyre Condition *</label>
@@ -343,16 +338,20 @@
                         <label style="font-size:13px;">刹车灯 Brake Light *</label>
                         <select id="chkLightBrake" required>
                             <option value="">—</option>
-                            <option>✅ 两边都亮 Working</option>
-                            <option>❌ 异常 Not working</option>
+                            <option value="正常">✅ 两边都亮 Working</option>
+                            <option value="左亮右坏">❌ 左亮右坏 Left working, Right not working</option>
+                            <option value="右亮左坏">❌ 右亮左坏 Right working, Left not working</option>
+                            <option value="两边都坏">❌ 两边都坏 Both sides not working</option>
                         </select>
                     </div>
                     <div class="light-item">
                         <label style="font-size:13px;">转向灯 Signal Light *</label>
                         <select id="chkLightSignal" required>
                             <option value="">—</option>
-                            <option>✅ 两边都亮 Working</option>
-                            <option>❌ 异常 Not working</option>
+                            <option value="正常">✅ 两边都亮 Working</option>
+                            <option value="左亮右坏">❌ 左亮右坏 Left working, Right not working</option>
+                            <option value="右亮左坏">❌ 右亮左坏 Right working, Left not working</option>
+                            <option value="两边都坏">❌ 两边都坏 Both sides not working</option>
                         </select>
                     </div>
                     <div class="light-item">
@@ -375,7 +374,6 @@
                     <input type="date" id="chkBatteryDate">
                 </div>
             </div>
-
             <h3>上车后检查 After Getting In</h3>
             <div class="group">
                 <label>🛑 刹车检查 Brake Check *</label>
@@ -446,7 +444,6 @@
     </div>
 </div>
 
-<!-- 🧼 洗车打卡 -->
 <div id="wash" class="tab-content driver-only hidden">
     <div class="card">
         <h2>🧼 洗车打卡 Vehicle Wash Record</h2>
@@ -488,7 +485,6 @@
     </div>
 </div>
 
-<!-- 📋 我的记录 -->
 <div id="myRecords" class="tab-content hidden">
     <div class="card">
         <h2>📋 我的提交记录 My Records</h2>
@@ -496,7 +492,6 @@
     </div>
 </div>
 
-<!-- 👨‍💼 司机管理 -->
 <div id="manageDrivers" class="tab-content hidden">
     <div class="card">
         <h2>👨‍💼 司机名单管理（仅管理员）</h2>
@@ -514,7 +509,6 @@
     </div>
 </div>
 
-<!-- 📈 数据图表 -->
 <div id="statsCharts" class="tab-content hidden">
     <div class="card">
         <h2>📈 数据统计图表</h2>
@@ -522,7 +516,6 @@
     </div>
 </div>
 
-<!-- 📊 全部数据 -->
 <div id="allRecords" class="tab-content hidden">
     <div class="card">
         <h2>📊 全部数据汇总 All Records</h2>
@@ -546,25 +539,27 @@ function getDayFromDateStr(d) {
     return d ? days[new Date(d).getDay()] : days[new Date().getDay()];
 }
 
-// ===== 云端API统一读写 =====
 async function apiGet(action, params={}) {
     const u = new URL(API_URL);
     u.searchParams.set('action', action);
     Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
     try {
         const r = await fetch(u.toString(), {cache:'no-store'});
-        return await r.json();
+        const txt = await r.text();
+        const clean = txt.replace(/^[^[{]*/, '').replace(/[^}\]]*$/, '');
+        return JSON.parse(clean);
     } catch(e) { return {ok:false, msg:e+''}; }
 }
 
 async function apiPost(data) {
     updateSyncStatus('sending');
     try {
+        const sep = API_URL.includes('?') ? '&' : '?';
         const params = new URLSearchParams();
         Object.entries(data).forEach(([k, v]) => {
             params.append(k, typeof v === 'string' ? v : JSON.stringify(v));
         });
-        const res = await fetch(API_URL + '&' + params.toString(), { cache: 'no-store' });
+        const res = await fetch(API_URL + sep + params.toString(), { cache: 'no-store' });
         const txt = await res.text();
         const clean = txt.replace(/^[^[{]*/, '').replace(/[^}\]]*$/, '');
         const result = JSON.parse(clean);
@@ -617,7 +612,6 @@ function refreshDriverSelect() {
     document.getElementById('driverHint').textContent=driversList.length?'✅ 名单已加载':'⚠️ 使用默认名单';
 }
 
-// ===== 登录/退出 =====
 document.getElementById('driverSelect').addEventListener('change',e=>{
     document.getElementById('enterBtn').disabled=!e.target.value;
 });
@@ -686,7 +680,6 @@ function switchTab(n){
     if(n==='students')renderStudentList();
 }
 
-// ===== 载送统计提交 =====
 document.getElementById('transportForm').addEventListener('submit',async e=>{
     e.preventDefault();
     const rec={
@@ -705,7 +698,6 @@ document.getElementById('transportForm').addEventListener('submit',async e=>{
     document.getElementById('trDate').value=todayStr();
 });
 
-// ===== 车辆检查提交 — 全部字段统一到云端 =====
 document.getElementById('checkForm').addEventListener('submit',async e=>{
     e.preventDefault();
     const rec={
@@ -742,7 +734,6 @@ document.getElementById('checkForm').addEventListener('submit',async e=>{
     document.getElementById('chkDate').value=todayStr();
 });
 
-// ===== 洗车打卡提交 =====
 document.getElementById('washForm').addEventListener('submit',async e=>{
     e.preventDefault();
     const rec={
@@ -760,7 +751,6 @@ document.getElementById('washForm').addEventListener('submit',async e=>{
     document.getElementById('washDate').value=todayStr();
 });
 
-// ===== 学生点名 =====
 function renderStudentList(){
     const date=document.getElementById('filterDate').value||todayStr();
     const day=getDayFromDateStr(date);
@@ -785,11 +775,13 @@ function renderStudentList(){
     c.innerHTML=list.map(s=>{
         const st=(attendanceState[date]||{})[s.id]||{status:'none',remark:''};
         return `<div class="student-card">
-            <div class="student-name">${s.name} ${s.cn?'('+s.cn+')':''}</div>
-            <div class="student-meta">
-                <span class="student-school">${s.school}</span>
-                <span class="student-grade">${s.grade}</span>
-                <span>📅 ${DAY_NAMES[s.day]}</span>
+            <div>
+                <div class="student-name">${s.name} ${s.cn?'('+s.cn+')':''}</div>
+                <div class="student-meta">
+                    <span class="student-school">${s.school}</span>
+                    <span class="student-grade">${s.grade}</span>
+                    <span>📅 ${DAY_NAMES[s.day]}</span>
+                </div>
             </div>
             <div class="attend-buttons">
                 <button class="ab-btn none ${st.status==='none'?'selected':''}" onclick="setAtt(${s.id},'none')">⏳ 未填</button>
@@ -813,7 +805,6 @@ async function saveAttendance(){
     alert(res.ok?'✅ 点名已同步到云端！':'保存失败：'+res.msg);
 }
 
-// ===== 记录显示 =====
 function renderMyRecords(){
     const c=document.getElementById('myRecordsList');
     const mine=allRecords.filter(r=>r.driver===currentUser?.name);
@@ -831,7 +822,6 @@ function getTypeLabel(t){
     return {transport:'📊 载送统计',check:'🚗 车辆检查',wash:'🧼 洗车打卡'}[t]||t;
 }
 
-// ===== 司机管理 =====
 async function addDriver(){
     const n=document.getElementById('newDriverName').value.trim();
     if(!n){alert('⚠️ 请填写姓名');return;}
@@ -842,7 +832,6 @@ async function addDriver(){
     else alert('保存失败：'+res.msg);
 }
 
-// ===== 导出 =====
 function exportAll(){
     if(!allRecords.length){alert('暂无数据');return;}
     const csv='\uFEFF日期,类型,司机,车牌,详情\n'+
@@ -854,7 +843,6 @@ function exportAll(){
     a.click();
 }
 
-// ===== 初始化 =====
 refreshDriverSelect();
 loadAllFromCloud();
 </script>
