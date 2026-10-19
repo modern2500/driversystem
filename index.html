@@ -560,18 +560,25 @@ async function apiGet(action, params={}) {
 async function apiPost(data) {
     updateSyncStatus('sending');
     try {
-        const r = await fetch(API_URL, {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify(data)
+        const params = new URLSearchParams();
+        Object.entries(data).forEach(([k, v]) => {
+            params.append(k, typeof v === 'string' ? v : JSON.stringify(v));
         });
-        const res = await r.json();
-        if(res.ok) { updateSyncStatus('ok'); await loadAllFromCloud(); }
-        else updateSyncStatus('error');
-        return res;
+        const res = await fetch(API_URL + '&' + params.toString(), { cache: 'no-store' });
+        const txt = await res.text();
+        const clean = txt.replace(/^[^[{]*/, '').replace(/[^}\]]*$/, '');
+        const result = JSON.parse(clean);
+        
+        if (result.ok) { 
+            updateSyncStatus('ok'); 
+            await loadAllFromCloud(); 
+        } else {
+            updateSyncStatus('error');
+        }
+        return result;
     } catch(e) {
         updateSyncStatus('error');
-        return {ok:false, msg:e+''};
+        return { ok: false, msg: e + '' };
     }
 }
 
